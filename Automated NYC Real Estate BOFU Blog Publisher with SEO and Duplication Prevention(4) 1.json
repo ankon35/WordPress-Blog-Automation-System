@@ -1,0 +1,1090 @@
+{
+  "name": "Automated NYC Real Estate BOFU Blog Publisher with SEO and Duplication Prevention",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "id",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "id": "9c9120ea-90e3-4489-bb80-2e2514f73175",
+      "name": "OpenAI Chat Model - Topic Selection",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1744,
+        736
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "LENLD9ArCAyRYvsd",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\"type\": \"object\", \"properties\": {\"selectedTopic\": {\"type\": \"string\", \"description\": \"The single best BOFU topic selected\"}, \"reasoningScore\": {\"type\": \"number\", \"description\": \"Score from 0-100 indicating topic strength\"}, \"reasoning\": {\"type\": \"string\", \"description\": \"Detailed explanation of why this topic was selected\"}}, \"required\": [\"selectedTopic\", \"reasoningScore\", \"reasoning\"]}",
+        "autoFix": true
+      },
+      "id": "e71e9c2f-f002-4353-aa93-9b11fd35e732",
+      "name": "Topic Selection Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1744,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze these 5 BOFU topics:\n\n{{ $json.topics }}\n\nSelect the SINGLE strongest decision-stage topic based on:\n1. Buyer/seller readiness (transactional intent strength)\n2. Search intent strength (commercial value)\n3. Monetization potential (conversion likelihood)\n4. Local Temecula area demand (neighborhood-specific relevance for Temecula, Temecula Wine Country, De Luz, Meadowview, Murrieta, Winchester, Menifee, La Cresta)\n\nProvide your selection with a reasoning score (0-100) and detailed explanation of why this topic will drive the most conversions.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a data-driven SEO and real estate marketing expert specializing in BOFU content for the New York market. Your selections prioritize commercial intent and conversion potential over traffic volume."
+        }
+      },
+      "id": "6b60b148-1f1e-40cb-85a6-31eb863e1948",
+      "name": "AI Agent - Select Best Topic",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1664,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "=Duplication detected - Topic too similar to existing blog (similarity: {{ $json.similarityScore }}). Similar blog: {{ $json.similarBlog }}. Workflow stopped to prevent duplicate content."
+      },
+      "id": "ba47e2f6-5ed6-4a26-b8e6-f6e851bfe4b6",
+      "name": "Stop - Duplication Detected",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3792,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "topics",
+              "value": "={{ $json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "topicCount",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "id-3",
+              "name": "generatedDate",
+              "value": "={{ $now.toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7beb0ad8-cabc-4a68-897c-10e82a23d0c7",
+      "name": "Format Topics for Selection",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "b2ab256e-cb3d-4919-a952-3dc765b62bb5",
+      "name": "Daily 24h Trigger1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        768,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "similarityThreshold",
+              "value": 0.75,
+              "type": "number"
+            },
+            {
+              "id": "id-2",
+              "name": "authorBios",
+              "value": "[\"Experienced Temecula real estate expert specializing in Temecula Wine Country properties and investment opportunities across Murrieta, Menifee, and Winchester.\", \"Licensed real estate broker with 15+ years helping clients navigate the competitive Temecula area housing market including De Luz, Meadowview, and La Cresta.\", \"Temecula real estate analyst focused on market trends, neighborhood insights, and buyer/seller strategies for the greater Temecula Valley region.\"]",
+              "type": "array"
+            },
+            {
+              "id": "id-3",
+              "name": "workflowStartTime",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a76b7dd6-9218-431b-a414-723d8475ca4e",
+      "name": "Workflow Configuration1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "model": "sonar-pro",
+        "messages": {
+          "message": [
+            {
+              "content": "=Generate exactly 5 trending BOFU (Bottom-of-Funnel) decision-stage topics for the Temecula, California real estate market. Target these specific areas: Temecula, Temecula Wine Country, De Luz, Meadowview, Murrieta, Winchester, Menifee, and La Cresta. Each topic MUST be: 1) Location-specific at city or neighborhood level (e.g., Temecula Wine Country, Murrieta, Menifee specific areas), 2) Reflect strong transactional intent with keywords like: buy, sell, invest, pricing, cost, best, comparison, worth, 3) Current and demand-driven for {{ $now.toFormat('MMMM yyyy') }}, 4) Have strong commercial intent for buyers/sellers ready to transact. Format: Return as a numbered list with each topic on a new line. Focus on high-value queries that indicate purchase or sale readiness."
+            }
+          ]
+        },
+        "simplify": true,
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "877852e7-bffa-49c4-a8fb-0532b0cc655e",
+      "name": "Generate 5 BOFU Topics1",
+      "type": "n8n-nodes-base.perplexity",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        512
+      ],
+      "credentials": {
+        "perplexityApi": {
+          "id": "dVYSoLPyseVOBADS",
+          "name": "Perplexity account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Ndwekjt5aRi41DHcboTlDhQfeh7L9tZxeFOxeEcWQyM",
+          "mode": "list",
+          "cachedResultName": "Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ndwekjt5aRi41DHcboTlDhQfeh7L9tZxeFOxeEcWQyM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ndwekjt5aRi41DHcboTlDhQfeh7L9tZxeFOxeEcWQyM/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "80904069-cd69-4e03-b930-69eb2d1a248f",
+      "name": "Get Existing Blog Database1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1776,
+        912
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8IEWvqSlFkmBw6eP",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { selectedTopic: $input.item.json.selectedTopic, similarityScore: $input.item.json.maxSimilarity, similarBlog: $input.item.json.similarBlog, reasoningScore: $input.item.json.reasoningScore, threshold: 0.75 } }];"
+      },
+      "id": "14f8d49f-166b-4271-87d0-5eecadaedab4",
+      "name": "Calculate Similarity Score1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2784,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.similarityScore }}",
+              "rightValue": "0.75",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "4252151e-c97b-48c8-815f-71904ef7befd",
+      "name": "Check Duplication Threshold1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3008,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "title",
+              "field2": "title"
+            }
+          ]
+        },
+        "fuzzyCompare": true,
+        "options": {}
+      },
+      "id": "3f37a8b1-b812-4e4b-84c1-39e6d9766e02",
+      "name": "Check Title & Slug Duplication1",
+      "type": "n8n-nodes-base.compareDatasets",
+      "typeVersion": 2.3,
+      "position": [
+        3232,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.matches }}",
+              "operator": {
+                "type": "array",
+                "operation": "empty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "id": "ff825cf7-0a70-4de7-a041-76d940247503",
+      "name": "Check Title/Slug Match1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3456,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 4000,
+          "temperature": 0
+        }
+      },
+      "id": "3735b0d7-02c3-44d8-b57e-bf156a62012a",
+      "name": "OpenAI Chat Model - Blog Generation1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3760,
+        736
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "3jfAfcM1b9kkxpgx",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\"type\": \"object\", \"properties\": {\"h1\": {\"type\": \"string\", \"description\": \"Evergreen headline, location-specific, decision-stage optimized\"}, \"openingQuestion\": {\"type\": \"string\", \"description\": \"Bold engaging question, emotionally compelling\"}, \"metaDescription\": {\"type\": \"string\", \"description\": \"SEO-optimized snippet, 140-160 characters, click-optimized\"}, \"content\": {\"type\": \"string\", \"description\": \"Full HTML blog post 800-1200 words with proper H2/H3 structure, authority positioning, deep sections, FAQ, strong closing\"}, \"authorBio\": {\"type\": \"string\", \"description\": \"Rotating author bio with local expert positioning\"}, \"primaryKeyword\": {\"type\": \"string\"}, \"secondaryKeywords\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}, \"required\": [\"h1\", \"openingQuestion\", \"metaDescription\", \"content\", \"authorBio\", \"primaryKeyword\"]}",
+        "autoFix": true
+      },
+      "id": "de743029-b168-4364-bc25-c2c552c6b554",
+      "name": "Blog Generation Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3760,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a high-converting BOFU blog post for this topic:\n\n{{ $json.selectedTopic }}\n\nMANDATORY STRUCTURE (strict compliance required):\n\n1. H1: Evergreen headline (clear, location-specific for Temecula area including Temecula, Temecula Wine Country, De Luz, Meadowview, Murrieta, Winchester, Menifee, La Cresta, decision-stage optimized)\n2. Bold Opening Question: Engaging, emotionally compelling, buyer/seller intent\n3. SEO Meta Description: 140-160 characters, click-optimized, contains primary keyword\n4. Authority Positioning Section: Establish Temecula area real estate expertise, data-backed, local market knowledge\n5. Deep Structured Sections: Clear H2/H3 hierarchy, data-driven insights, neighborhood-level references (Temecula Wine Country, De Luz, Meadowview, Murrieta, Winchester, Menifee, La Cresta), pricing trends, buyer/seller guidance, risk considerations, market timing analysis\n6. FAQ Section: 3-5 highly relevant BOFU questions, schema-friendly formatting\n7. Strong Closing: Conversion-oriented, encourage next step, trust-building\n8. Author Bio: Local expert positioning, credibility reinforcement\n\nREQUIREMENTS:\n- 800-1200 words\n- SEO optimized (on-page best practices)\n- GEO optimized (Temecula area location-rich signals)\n- Authoritative but accessible tone\n- Decision-stage reader focus\n- Data-driven, avoid fluff\n- Unique insights\n- Natural internal linking placeholders [LINK: anchor text]\n\nReturn complete HTML-formatted content with proper heading tags.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an elite NYC real estate content writer and SEO specialist. You create BOFU content that converts browsers into buyers and sellers. Your writing is authoritative, data-driven, locally relevant, and optimized for both search engines and human decision-makers. You NEVER deviate from the mandatory structure. Every piece includes specific NYC neighborhoods, current market data, and actionable guidance."
+        }
+      },
+      "id": "80ccfe36-e66d-4d0a-a92c-1ca1e73474f6",
+      "name": "AI Agent - Generate Blog Post1",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3680,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "title",
+              "value": "={{ $json.h1 }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "slug",
+              "value": "={{ $json.slug }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "content",
+              "value": "={{ $json.content }}\n\n<p><strong>{{ $json.openingQuestion }}</strong></p>\n\n<div class=\"author-bio\">{{ $json.authorBio }}</div>",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "excerpt",
+              "value": "={{ $json.metaDescription }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "status",
+              "value": "publish",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "metaDescription",
+              "value": "={{ $json.metaDescription }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d16e0a85-6749-4f7e-a195-0222fa1a17f4",
+      "name": "Prepare WordPress Data1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4352,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.title }}",
+        "additionalFields": {
+          "content": "={{ $json.content }}",
+          "status": "publish"
+        }
+      },
+      "id": "44c9a563-141b-4fd9-a4f3-06b76808680b",
+      "name": "Publish to WordPress1",
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        4576,
+        512
+      ],
+      "credentials": {
+        "wordpressApi": {
+          "id": "x6K7TFBt5qj9BKEx",
+          "name": "Wordpress account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Ndwekjt5aRi41DHcboTlDhQfeh7L9tZxeFOxeEcWQyM",
+          "mode": "list",
+          "cachedResultName": "Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ndwekjt5aRi41DHcboTlDhQfeh7L9tZxeFOxeEcWQyM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ndwekjt5aRi41DHcboTlDhQfeh7L9tZxeFOxeEcWQyM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "publishedDate": "={{ $json.publishedDate }}",
+            "title": "={{ $json.title }}",
+            "reasoningScore": "={{ $json.reasoningScore }}",
+            "slug": "={{ $json.slug }}",
+            "topic": "={{ $json.topic }}",
+            "wordpressUrl": "={{ $json.wordpressUrl }}",
+            "primaryKeyword": "={{ $json.primaryKeyword }}",
+            "status": "={{ $json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "publishedDate",
+              "displayName": "publishedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reasoningScore",
+              "displayName": "reasoningScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "wordpressUrl",
+              "displayName": "wordpressUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "primaryKeyword",
+              "displayName": "primaryKeyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f65ada77-a082-4568-ba69-666a8364b5d3",
+      "name": "Log Published Blog1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        5024,
+        512
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8IEWvqSlFkmBw6eP",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "publishedDate",
+              "value": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "title",
+              "value": "={{ $('Extract H1 from Blog1').item.json.h1 }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "slug",
+              "value": "={{ $('Extract H1 from Blog1').item.json.slug }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "topic",
+              "value": "={{ $('Extract H1 from Blog1').item.json.selectedTopic }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "reasoningScore",
+              "value": "={{ $('Extract H1 from Blog1').item.json.reasoningScore }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "wordpressUrl",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "primaryKeyword",
+              "value": "={{ $('Extract H1 from Blog1').item.json.primaryKeyword }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "status",
+              "value": "published",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0df70fff-6996-4c71-b168-f40ac566abf7",
+      "name": "Prepare Log Data1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4800,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "513e3c27-b20a-4d0a-95f9-0f9edb9af504",
+      "name": "Merge Topic with Database1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2112,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "selectedTopic",
+              "value": "={{ $('AI Agent - Select Best Topic').item.json.output.selectedTopic }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "reasoningScore",
+              "value": "={{ $('AI Agent - Select Best Topic').item.json.output.reasoningScore }}",
+              "type": "number"
+            },
+            {
+              "id": "id-3",
+              "name": "existingBlogs",
+              "value": "={{ JSON.stringify($('Get Existing Blog Database1').all()) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0bd2dbb1-e7e4-4051-9e59-509da5ff528c",
+      "name": "Prepare Selected Topic for Query1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2336,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const selectedTopic = $input.item.json.selectedTopic.toLowerCase();\nconst existingBlogs = $input.item.json.existingBlogs;\n\nif (!existingBlogs || existingBlogs.length === 0) {\n  return [{ json: { selectedTopic: $input.item.json.selectedTopic, maxSimilarity: 0, similarBlog: null, reasoningScore: $input.item.json.reasoningScore } }];\n}\n\nfunction calculateSimilarity(str1, str2) {\n  const words1 = str1.toLowerCase().split(/\\s+/).filter(w => w.length > 3);\n  const words2 = str2.toLowerCase().split(/\\s+/).filter(w => w.length > 3);\n  const set1 = new Set(words1);\n  const set2 = new Set(words2);\n  const intersection = new Set([...set1].filter(x => set2.has(x)));\n  const union = new Set([...set1, ...set2]);\n  return union.size > 0 ? intersection.size / union.size : 0;\n}\n\nlet maxSimilarity = 0;\nlet similarBlog = null;\n\nfor (const blog of existingBlogs) {\n  if (blog.json.title) {\n    const similarity = calculateSimilarity(selectedTopic, blog.json.title);\n    if (similarity > maxSimilarity) {\n      maxSimilarity = similarity;\n      similarBlog = blog.json.title;\n    }\n  }\n}\n\nreturn [{ json: { selectedTopic: $input.item.json.selectedTopic, maxSimilarity, similarBlog, reasoningScore: $input.item.json.reasoningScore } }];"
+      },
+      "id": "aab0024d-cccb-4f32-b26f-9e9ab5e5b6c4",
+      "name": "Calculate Semantic Similarity1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "h1",
+              "value": "={{ $json.output.h1 }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "slug",
+              "value": "={{ $json.output.h1.toLowerCase().replace(/[^a-z0-9]+/g, \"-\").replace(/^-+|-+$/g, \"\") }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "selectedTopic",
+              "value": "={{ $('Check Title/Slug Match1').item.json.selectedTopic }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "reasoningScore",
+              "value": "={{ $('Check Title/Slug Match1').item.json.reasoningScore }}",
+              "type": "number"
+            },
+            {
+              "id": "id-5",
+              "name": "primaryKeyword",
+              "value": "={{ $json.output.primaryKeyword }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "content",
+              "value": "={{ $json.output.content }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "openingQuestion",
+              "value": "={{ $json.output.openingQuestion }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "metaDescription",
+              "value": "={{ $json.output.metaDescription }}",
+              "type": "string"
+            },
+            {
+              "id": "id-9",
+              "name": "authorBio",
+              "value": "={{ $json.output.authorBio }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e435cde9-b0a1-42c2-a79b-c23a73027559",
+      "name": "Extract H1 from Blog1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4128,
+        512
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Format Topics for Selection": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Select Best Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model - Topic Selection": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Select Best Topic",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Topic Selection Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic Selection Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Select Best Topic",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Select Best Topic": {
+      "main": [
+        [
+          {
+            "node": "Merge Topic with Database1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 24h Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration1": {
+      "main": [
+        [
+          {
+            "node": "Generate 5 BOFU Topics1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Existing Blog Database1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate 5 BOFU Topics1": {
+      "main": [
+        [
+          {
+            "node": "Format Topics for Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Blog Database1": {
+      "main": [
+        [
+          {
+            "node": "Merge Topic with Database1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Calculate Similarity Score1": {
+      "main": [
+        [
+          {
+            "node": "Check Duplication Threshold1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplication Threshold1": {
+      "main": [
+        [
+          {
+            "node": "Check Title & Slug Duplication1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop - Duplication Detected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Title & Slug Duplication1": {
+      "main": [
+        [
+          {
+            "node": "Check Title/Slug Match1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Title/Slug Match1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Generate Blog Post1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop - Duplication Detected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model - Blog Generation1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Generate Blog Post1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Blog Generation Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blog Generation Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Generate Blog Post1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Generate Blog Post1": {
+      "main": [
+        [
+          {
+            "node": "Extract H1 from Blog1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare WordPress Data1": {
+      "main": [
+        [
+          {
+            "node": "Publish to WordPress1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish to WordPress1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Log Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Log Data1": {
+      "main": [
+        [
+          {
+            "node": "Log Published Blog1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Topic with Database1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Selected Topic for Query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Selected Topic for Query1": {
+      "main": [
+        [
+          {
+            "node": "Calculate Semantic Similarity1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Semantic Similarity1": {
+      "main": [
+        [
+          {
+            "node": "Calculate Similarity Score1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract H1 from Blog1": {
+      "main": [
+        [
+          {
+            "node": "Prepare WordPress Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "97de1a5f-6862-4e49-b7be-3474e43f7b21",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c66414b6a4a3013103c3f2c928f5fd9126551603ab7b797462e242f62b9b35f6"
+  },
+  "id": "chtaBgahM4x8HrGX",
+  "tags": []
+}
