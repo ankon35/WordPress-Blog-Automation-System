@@ -14,8 +14,7 @@ The system handles everything from **topic discovery → content creation → si
 
 ## ⚙️ Workflow
 
-![Workflow](workflow.png)
-
+![Workflow](Automation.jpg) 
 ---
 
 ## 🔄 How It Works
